@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ride History - Namma Yatri</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .ride-history-container {
+            width: 80%;
+            max-width: 800px;
+        }
+        
+        .ride-card {
+            background-color: #f8f9fa;
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .ride-card h3 {
+            margin-top: 0;
+            color: #007bff;
+        }
+        
+        .ride-status {
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 15px;
+            display: inline-block;
+            font-size: 0.8rem;
+        }
+        
+        .status-confirmed {
+            background-color: #ffc107;
+            color: #333;
+        }
+        
+        .status-ongoing {
+            background-color: #17a2b8;
+            color: white;
+        }
+        
+        .status-completed {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .status-cancelled {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .back-button {
+            margin-bottom: 20px;
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .back-button:hover {
+            background-color: #5a6268;
+        }
+        
+        .no-rides {
+            font-style: italic;
+            color: #6c757d;
+            text-align: center;
+            padding: 30px;
+        }
+        
+        .star-rating {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        
+        .star {
+            color: #ccc;
+            font-size: 24px;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+        
+        .star:hover, .star.active {
+            color: #ffc107;
+        }
+    </style>
+</head>
+<body>
+    <div class="container ride-history-container">
+        <h1>Your Ride History</h1>
+        
+        <a href="/passenger/{{ passenger_id }}" class="back-button">Back to Dashboard</a>
+        
+        {% if rides %}
+            {% for ride in rides %}
+                <div class="ride-card">
+                    <h3>{{ ride.Source }} to {{ ride.Destination }}</h3>
+                    <p><strong>Date:</strong> {{ ride.BookingTime.strftime('%d %b %Y, %I:%M %p') }}</p>
+                    <p><strong>Driver:</strong> {{ ride.DriverName }} ({{ ride.VehicleNo }})</p>
+                    <p>
+                        <strong>Status:</strong> 
+                        <span class="ride-status status-{{ ride.Status.lower() }}">{{ ride.Status }}</span>
+                    </p>
+                    {% if ride.RideRating %}
+                        <p><strong>Your Rating:</strong> {{ ride.RideRating }}/5</p>
+                    {% elif ride.Status == 'Completed' %}
+                        <div class="rating-section">
+                            <p><strong>Rate this ride:</strong></p>
+                            <div class="star-rating" data-booking-id="{{ ride.BookingID }}">
+                                <span class="star" data-rating="1">★</span>
+                                <span class="star" data-rating="2">★</span>
+                                <span class="star" data-rating="3">★</span>
+                                <span class="star" data-rating="4">★</span>
+                                <span class="star" data-rating="5">★</span>
+                            </div>
+                            <button class="submit-rating" data-booking-id="{{ ride.BookingID }}">Submit Rating</button>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="no-rides">
+                <p>You haven't taken any rides yet.</p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Star rating functionality
+            const starContainers = document.querySelectorAll('.star-rating');
+            
+            starContainers.forEach(container => {
+                const stars = container.querySelectorAll('.star');
+                const bookingId = container.dataset.bookingId;
+                let selectedRating = 0;
+                
+                stars.forEach(star => {
+                    star.addEventListener('mouseover', function() {
+                        const rating = parseInt(this.dataset.rating);
+                        highlightStars(stars, rating);
+                    });
+                    
+                    star.addEventListener('click', function() {
+                        selectedRating = parseInt(this.dataset.rating);
+                        highlightStars(stars, selectedRating);
+                        
+                        // Store the selected rating
+                        container.dataset.selectedRating = selectedRating;
+                    });
+                });
+                
+                container.addEventListener('mouseout', function() {
+                    highlightStars(stars, selectedRating);
+                });
+            });
+            
+            // Submit rating functionality
+            const submitButtons = document.querySelectorAll('.submit-rating');
+            
+            submitButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const bookingId = this.dataset.bookingId;
+                    const starContainer = document.querySelector(`.star-rating[data-booking-id="${bookingId}"]`);
+                    const rating = parseInt(starContainer.dataset.selectedRating || 0);
+                    
+                    if (rating === 0) {
+                        alert('Please select a rating first.');
+                        return;
+                    }
+                    
+                    // Submit rating to server
+                    fetch('/api/submit_rating', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            booking_id: bookingId,
+                            rating: rating
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Replace rating UI with confirmation
+                            const ratingSection = button.closest('.rating-section');
+                            ratingSection.innerHTML = `<p><strong>Your Rating:</strong> ${rating}/5 ✓</p>`;
+                        } else {
+                            alert(data.message || 'Failed to submit rating.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Something went wrong. Please try again.');
+                    });
+                });
+            });
+            
+            function highlightStars(stars, rating) {
+                stars.forEach(star => {
+                    const starRating = parseInt(star.dataset.rating);
+                    if (starRating <= rating) {
+                        star.classList.add('active');
+                    } else {
+                        star.classList.remove('active');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

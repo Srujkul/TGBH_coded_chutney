@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Namma Yatri - Home</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+        }
+        .left-section {
+            flex: 1;
+            background: url("../static/namma_yatri.png") center/cover;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .right-section {
+            flex: 1;
+            background: #faf9f9;
+            display: flex;
+            justify-content: center;
+
+            align-items: center;
+            color: rgb(5, 5, 5);
+            flex-direction: column;
+            padding: 40px;
+        }
+        .container {
+            background: #111;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(255, 255, 0, 0.3);
+            width: 350px;
+            text-align: center;
+        }
+        h1 { color: #FFD700; }
+        h2 { color: #fff; }
+        .tab-buttons {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #FFD700;
+        }
+        .tab-button {
+            flex: 1;
+            padding: 10px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: white;
+        }
+        .tab-button.active {
+            border-bottom: 3px solid #FFD700;
+            color: #FFD700;
+            font-weight: bold;
+        }
+        .input-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        .input-group label {
+            display: block;
+            color: #FFD700;
+            font-weight: bold;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #FFD700;
+            background: #222;
+            color: white;
+            box-sizing: border-box;
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #FFD700;
+            color: #000;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .submit-btn:hover {
+            background-color: #FFC107;
+        }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="left-section"></div>
+    <div class="right-section">
+        <div class="container">
+            <h1>Welcome to Namma Yatri</h1>
+            <p>Your trusted ride-sharing platform</p>
+            <div class="tab-buttons">
+                <button id="passenger-tab" class="tab-button active" onclick="showTab('passenger')">Passenger</button>
+                <button id="driver-tab" class="tab-button" onclick="showTab('driver')">Driver</button>
+            </div>
+            <div id="passenger-form" class="tab-content">
+                <form action="/login/passenger" method="post">
+                    <div class="input-group">
+                        <label for="passenger-id">Passenger ID:</label>
+                        <input type="text" id="passenger-id" name="passenger_id" required>
+                    </div>
+                    <button type="submit" class="submit-btn">Login</button>
+                </form>
+            </div>
+            <div id="driver-form" class="tab-content hidden">
+                <form action="/login/driver" method="post">
+                    <div class="input-group">
+                        <label for="driver-id">Driver ID:</label>
+                        <input type="text" id="driver-id" name="driver_id" required>
+                    </div>
+                    <button type="submit" class="submit-btn">Login</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        function showTab(tabName) {
+            document.getElementById('passenger-form').classList.add('hidden');
+            document.getElementById('driver-form').classList.add('hidden');
+            document.getElementById('passenger-tab').classList.remove('active');
+            document.getElementById('driver-tab').classList.remove('active');
+            document.getElementById(tabName + '-form').classList.remove('hidden');
+            document.getElementById(tabName + '-tab').classList.add('active');
+        }
+    </script>
+</body>
+</html>

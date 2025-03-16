@@ -1,0 +1,288 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver Earnings - Namma Yatri</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .earnings-container {
+            width: 80%;
+            max-width: 800px;
+        }
+        
+        .summary-card {
+            background-color: #e9f7ef;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .summary-card h2 {
+            margin-top: 0;
+            color: #28a745;
+        }
+        
+        .amount {
+            font-size: 24px;
+            font-weight: bold;
+            color: #28a745;
+        }
+        
+        .time-filter {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .filter-btn {
+            padding: 8px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f8f9fa;
+            cursor: pointer;
+        }
+        
+        .filter-btn.active {
+            background-color: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+        
+        .earnings-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .earnings-table th,
+        .earnings-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .earnings-table th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        
+        .back-button {
+            margin-bottom: 20px;
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .back-button:hover {
+            background-color: #5a6268;
+        }
+        
+        .no-earnings {
+            font-style: italic;
+            color: #6c757d;
+            text-align: center;
+            padding: 30px;
+        }
+        
+        .earnings-chart {
+            margin: 20px 0;
+            height: 300px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            padding: 15px;
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Time filter functionality
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Remove active class from all buttons
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    
+                    // Add active class to the clicked button
+                    this.classList.add('active');
+                    
+                    // Get the time period
+                    const period = this.dataset.period;
+                    
+                    // Update data via API call
+                    fetchEarningsData(period);
+                });
+            });
+            
+            // Function to fetch earnings data for the selected period
+            function fetchEarningsData(period) {
+                const driverId = document.querySelector('.earnings-container').dataset.driverId;
+                
+                // Show loading state
+                document.querySelectorAll('.amount')[0].textContent = 'Loading...';
+                document.querySelector('.summary-details p:nth-child(2)').textContent = 'Number of Trips: Loading...';
+                document.querySelectorAll('.amount')[1].textContent = 'Loading...';
+                
+                // Fetch data from the server
+                fetch(`/api/driver/${driverId}/earnings?period=${period}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            // Update the UI with real data
+                            document.querySelectorAll('.amount')[0].textContent = `₹${data.stats.total_earnings.toFixed(2)}`;
+                            document.querySelector('.summary-details p:nth-child(2)').textContent = `Number of Trips: ${data.stats.total_trips}`;
+                            document.querySelectorAll('.amount')[1].textContent = `₹${data.stats.avg_earnings.toFixed(2)}`;
+                            
+                            // Update chart
+                            updateChartWithData(data.chart_data, period);
+                        } else {
+                            console.error('Error:', data.message);
+                            showError('Failed to load earnings data');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showError('Failed to load earnings data');
+                    });
+            }
+            
+            function showError(message) {
+                document.querySelectorAll('.amount')[0].textContent = 'Error';
+                document.querySelector('.summary-details p:nth-child(2)').textContent = message;
+                document.querySelectorAll('.amount')[1].textContent = 'Error';
+            }
+            
+            // Initialize earnings chart
+            const ctx = document.getElementById('earningsChart').getContext('2d');
+            let earningsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Earnings (₹)',
+                        data: [0, 0, 0, 0, 0, 0, 0],
+                        backgroundColor: 'rgba(40, 167, 69, 0.6)',
+                        borderColor: 'rgba(40, 167, 69, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Amount (₹)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Weekly Earnings'
+                        }
+                    }
+                }
+            });
+            
+            // Function to update chart with actual data
+            function updateChartWithData(chartData, period) {
+                const labels = chartData.map(item => item.label);
+                const data = chartData.map(item => item.value);
+                
+                let title = '';
+                switch(period) {
+                    case 'day':
+                        title = 'Today\'s Earnings';
+                        break;
+                    case 'week':
+                        title = 'Weekly Earnings';
+                        break;
+                    case 'month':
+                        title = 'Monthly Earnings';
+                        break;
+                    case 'year':
+                        title = 'Yearly Earnings';
+                        break;
+                }
+                
+                earningsChart.data.labels = labels;
+                earningsChart.data.datasets[0].data = data;
+                earningsChart.options.plugins.title.text = title;
+                earningsChart.update();
+            }
+            
+            // Fetch initial data for the default period (week)
+            fetchEarningsData('week');
+        });
+    </script>
+</head>
+<div class="container earnings-container" data-driver-id="{{ driver_id }}">
+    <h1>Your Earnings</h1>
+    
+    <a href="/driver/{{ driver_id }}" class="back-button">Back to Dashboard</a>
+    
+    <div class="time-filter">
+        <button class="filter-btn" data-period="day">Today</button>
+        <button class="filter-btn active" data-period="week">This Week</button>
+        <button class="filter-btn" data-period="month">This Month</button>
+        <button class="filter-btn" data-period="year">This Year</button>
+    </div>
+    
+    <div class="summary-card">
+        <h2>Earnings Summary</h2>
+        <div class="summary-details">
+            <p>Total Earnings: <span class="amount">₹{{ total_earnings }}</span></p>
+            <p>Number of Trips: {{ total_trips }}</p>
+            <p>Average Earnings per Trip: <span class="amount">₹{{ avg_earnings }}</span></p>
+        </div>
+    </div>
+    
+    <div class="earnings-chart">
+        <canvas id="earningsChart"></canvas>
+    </div>
+    
+    <h2>Recent Earnings</h2>
+    {% if earnings %}
+        <table class="earnings-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Passenger</th>
+                    <th>Route</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for earning in earnings %}
+                    <tr>
+                        <td>{{ earning.date }}</td>
+                        <td>{{ earning.passenger }}</td>
+                        <td>{{ earning.source }} to {{ earning.destination }}</td>
+                        <td>₹{{ earning.amount }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="no-earnings">
+            <p>No earnings data available for the selected period.</p>
+        </div>
+    {% endif %}
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+</body>
+</html>

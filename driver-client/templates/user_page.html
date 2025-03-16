@@ -1,0 +1,395 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passenger Page - Namma Yatri</title>
+    <link rel="stylesheet" href="D:\PES Academy\TGBH\Project\style.css">
+    <script>
+        let selectedService = null;
+
+        function selectService(service) {
+            selectedService = service;
+            
+            // Update UI
+            document.querySelectorAll('.service-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            document.querySelector(`.service-btn[onclick="selectService('${service}')"]`).classList.add('active');
+        }
+
+        function estimateFare() {
+            if (!selectedService) {
+                alert('Please select a service type (Auto, Bike, or Car)');
+                return;
+            }
+            
+            const source = document.getElementById('source').value;
+            const destination = document.getElementById('destination').value;
+            
+            if (source === destination) {
+                alert('Source and destination cannot be the same');
+                return;
+            }
+            
+            // API call to get fare estimate
+            fetch('/api/estimate_fare', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    source: source,
+                    destination: destination,
+                    service_type: selectedService
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.fare) {
+                    document.getElementById('fare-amount').textContent = `₹${data.fare}`;
+                    document.getElementById('fare-display').classList.remove('hidden');
+                    
+                    // Enable book button
+                    document.getElementById('book-ride').disabled = false;
+                } else {
+                    alert("Error calculating fare. Please try again.");
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("Something went wrong. Please try again later.");
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Disable book button until fare is calculated
+            document.getElementById('book-ride').disabled = true;
+            
+            // Add event listener for book button
+            document.getElementById('book-ride').addEventListener('click', function() {
+                if (!selectedService) {
+                    alert('Please select a service type and get a fare estimate first');
+                    return;
+                }
+                
+                const passengerId = document.querySelector('[data-passenger-id]').dataset.passengerId;
+                const source = document.getElementById('source').value;
+                const destination = document.getElementById('destination').value;
+                
+                // API call to book ride
+                fetch('/api/book_ride', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        passenger_id: passengerId,
+                        source: source,
+                        destination: destination,
+                        service_type: selectedService
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(`Ride booked! Your driver ${data.driver.name} (${data.driver.vehicle}) will arrive shortly.`);
+                        // Redirect to ride status page (could be implemented later)
+                    } else {
+                        alert(data.message || "Booking failed. Please try again.");
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert("Something went wrong. Please try again later.");
+                });
+            });
+        });
+    </script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 350px;
+            max-width: 100%;
+        }
+        
+        .home-container {
+            width: 400px;
+        }
+        
+        h1 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        h2 {
+            color: #444;
+            margin-bottom: 15px;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        
+        .input-group label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+        }
+        
+        .input-group select,
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+        }
+        
+        .service-selection {
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .service-btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #ddd;
+            transition: all 0.3s ease;
+            flex: 1;
+            max-width: 80px;
+        }
+        
+        .service-btn:hover {
+            background-color: #bbb;
+        }
+        
+        .service-btn.active {
+            background-color: #007bff;
+            color: white;
+        }
+        
+        #estimate-fare, 
+        #book-ride,
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        
+        #estimate-fare:hover, 
+        #book-ride:hover,
+        .submit-btn:hover {
+            background-color: #0056b3;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        #fare-display {
+            margin: 15px 0;
+            padding: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #28a745;
+            background-color: #e9f7ef;
+            border-radius: 5px;
+        }
+        
+        .history-link,
+        .earnings-link {
+            margin-top: 20px;
+        }
+        
+        .history-link a,
+        .earnings-link a,
+        .register-link a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        
+        .history-link a:hover,
+        .earnings-link a:hover,
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+        
+        .tab-buttons {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .tab-button {
+            flex: 1;
+            padding: 10px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: #555;
+        }
+        
+        .tab-button.active {
+            border-bottom: 3px solid #007bff;
+            color: #007bff;
+            font-weight: bold;
+        }
+        
+        .tab-content {
+            padding: 10px 0;
+        }
+        
+        .register-link {
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        
+        .status-toggle {
+            margin: 20px 0;
+        }
+        
+        .toggle-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .toggle-buttons button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        #status-available {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        #status-busy {
+            background-color: #ffc107;
+            color: #333;
+        }
+        
+        #status-offline {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .toggle-buttons button.active {
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.5);
+        }
+        
+        .ride-section {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            text-align: left;
+        }
+        
+        #no-ride-message {
+            color: #6c757d;
+            text-align: center;
+            font-style: italic;
+        }
+        
+        #ride-details {
+            padding: 10px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+        }
+        
+        #ride-details p {
+            margin: 5px 0;
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                width: 90%;
+                margin: 0 auto;
+            }
+            
+            .service-selection {
+                flex-direction: column;
+            }
+            
+            .service-btn {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container" data-passenger-id="{{ passenger_id }}">
+        <h1>Hello, {{ passenger_name }}</h1>
+        <p>Passenger ID: {{ passenger_id }}</p>
+        <p>Gender: {{ gender }}</p>
+        <p style="display: none;">Age: {{ age }}</p>
+        
+        <div class="input-group">
+            <label for="source">Source:</label>
+            <select id="source" name="source">
+                {% for location in locations %}
+                    <option value="{{ location }}">{{ location }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="input-group">
+            <label for="destination">Destination:</label>
+            <select id="destination" name="destination">
+                {% for location in locations %}
+                    <option value="{{ location }}">{{ location }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="service-selection">
+            <button class="service-btn" onclick="selectService('auto')">Auto</button>
+            <button class="service-btn" onclick="selectService('bike')">Bike</button>
+            <button class="service-btn" onclick="selectService('car')">Car</button>
+        </div>
+        
+        <button id="estimate-fare" onclick="estimateFare()">Get Fare Estimate</button>
+        <div id="fare-display" class="hidden">Estimated Fare: <span id="fare-amount"></span></div>
+        
+        <button id="book-ride">Book Ride</button>
+        
+        <div class="history-link">
+            <a href="/passenger/{{ passenger_id }}/history">View Ride History</a>
+        </div>
+    </div>
+</body>
+</html>

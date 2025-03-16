@@ -1,0 +1,124 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver Ride History - Namma Yatri</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .ride-history-container {
+            width: 80%;
+            max-width: 800px;
+        }
+        
+        .ride-card {
+            background-color: #f8f9fa;
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .ride-card h3 {
+            margin-top: 0;
+            color: #007bff;
+        }
+        
+        .ride-status {
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 15px;
+            display: inline-block;
+            font-size: 0.8rem;
+        }
+        
+        .status-confirmed {
+            background-color: #ffc107;
+            color: #333;
+        }
+        
+        .status-ongoing {
+            background-color: #17a2b8;
+            color: white;
+        }
+        
+        .status-completed {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .status-cancelled {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .back-button {
+            margin-bottom: 20px;
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .back-button:hover {
+            background-color: #5a6268;
+        }
+        
+        .no-rides {
+            font-style: italic;
+            color: #6c757d;
+            text-align: center;
+            padding: 30px;
+        }
+        
+        .star-full {
+            color: #ffc107;
+        }
+        
+        .star-empty {
+            color: #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div class="container ride-history-container">
+        <h1>Your Ride History</h1>
+        
+        <a href="/driver/{{ driver_id }}" class="back-button">Back to Dashboard</a>
+        
+        {% if rides %}
+            {% for ride in rides %}
+                <div class="ride-card">
+                    <h3>{{ ride.Source }} to {{ ride.Destination }}</h3>
+                    <p><strong>Date:</strong> {{ ride.BookingTime.strftime('%d %b %Y, %I:%M %p') }}</p>
+                    <p><strong>Passenger:</strong> {{ ride.PassengerName }}</p>
+                    <p>
+                        <strong>Status:</strong> 
+                        <span class="ride-status status-{{ ride.Status.lower() }}">{{ ride.Status }}</span>
+                    </p>
+                    {% if ride.RideRating %}
+                        <p>
+                            <strong>Rating Received:</strong> 
+                            {% for i in range(5) %}
+                                {% if i < ride.RideRating|int %}
+                                    <span class="star-full">★</span>
+                                {% else %}
+                                    <span class="star-empty">★</span>
+                                {% endif %}
+                            {% endfor %}
+                            ({{ ride.RideRating }})
+                        </p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="no-rides">
+                <p>You haven't completed any rides yet.</p>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

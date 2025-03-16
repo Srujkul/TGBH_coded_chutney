@@ -1,0 +1,318 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Namma Yatri - Home</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 350px;
+            max-width: 100%;
+        }
+        
+        .home-container {
+            width: 400px;
+        }
+        
+        h1 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        h2 {
+            color: #444;
+            margin-bottom: 15px;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        
+        .input-group label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+        }
+        
+        .input-group select,
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+        }
+        
+        .service-selection {
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .service-btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #ddd;
+            transition: all 0.3s ease;
+            flex: 1;
+            max-width: 80px;
+        }
+        
+        .service-btn:hover {
+            background-color: #bbb;
+        }
+        
+        .service-btn.active {
+            background-color: #007bff;
+            color: white;
+        }
+        
+        #estimate-fare, 
+        #book-ride,
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        
+        #estimate-fare:hover, 
+        #book-ride:hover,
+        .submit-btn:hover {
+            background-color: #0056b3;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        #fare-display {
+            margin: 15px 0;
+            padding: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #28a745;
+            background-color: #e9f7ef;
+            border-radius: 5px;
+        }
+        
+        .history-link,
+        .earnings-link {
+            margin-top: 20px;
+        }
+        
+        .history-link a,
+        .earnings-link a,
+        .register-link a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        
+        .history-link a:hover,
+        .earnings-link a:hover,
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+        
+        .tab-buttons {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .tab-button {
+            flex: 1;
+            padding: 10px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: #555;
+        }
+        
+        .tab-button.active {
+            border-bottom: 3px solid #007bff;
+            color: #007bff;
+            font-weight: bold;
+        }
+        
+        .tab-content {
+            padding: 10px 0;
+        }
+        
+        .register-link {
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        
+        .status-toggle {
+            margin: 20px 0;
+        }
+        
+        .toggle-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .toggle-buttons button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        #status-available {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        #status-busy {
+            background-color: #ffc107;
+            color: #333;
+        }
+        
+        #status-offline {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .toggle-buttons button.active {
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.5);
+        }
+        
+        .ride-section {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            text-align: left;
+        }
+        
+        #no-ride-message {
+            color: #6c757d;
+            text-align: center;
+            font-style: italic;
+        }
+        
+        #ride-details {
+            padding: 10px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+        }
+        
+        #ride-details p {
+            margin: 5px 0;
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                width: 90%;
+                margin: 0 auto;
+            }
+            
+            .service-selection {
+                flex-direction: column;
+            }
+            
+            .service-btn {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container home-container">
+        <h1>Welcome to Namma Yatri</h1>
+        <p>Your trusted ride-sharing platform</p>
+        
+        <div class="login-section">
+            <h2>Login</h2>
+            
+            <div class="tab-buttons">
+                <button id="passenger-tab" class="tab-button active" onclick="showTab('passenger')">Passenger</button>
+                <button id="driver-tab" class="tab-button" onclick="showTab('driver')">Driver</button>
+            </div>
+            
+            <div id="passenger-form" class="tab-content">
+                <form action="/login/passenger" method="post">
+                    <div class="input-group">
+                        <label for="passenger-id">Passenger ID:</label>
+                        <input type="text" id="passenger-id" name="passenger_id" required>
+                    </div>
+                    <button type="submit" class="submit-btn">Login</button>
+                </form>
+                <div class="register-link">
+                    <a href="/register/passenger">New user? Register here</a>
+                </div>
+            </div>
+            
+            <div id="driver-form" class="tab-content hidden">
+                <form action="/login/driver" method="post">
+                    <div class="input-group">
+                        <label for="driver-id">Driver ID:</label>
+                        <input type="text" id="driver-id" name="driver_id" required>
+                    </div>
+                    <button type="submit" class="submit-btn">Login</button>
+                </form>
+                <div class="register-link">
+                    <a href="/register/driver">Become a driver</a>
+                </div>
+            </div>
+            
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="flash-messages">
+                        {% for message in messages %}
+                            <p class="flash-message">{{ message }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+        </div>
+    </div>
+    
+    <script>
+        function showTab(tabName) {
+            // Hide all tabs
+            document.getElementById('passenger-form').classList.add('hidden');
+            document.getElementById('driver-form').classList.add('hidden');
+            
+            // Remove active class from all tab buttons
+            document.getElementById('passenger-tab').classList.remove('active');
+            document.getElementById('driver-tab').classList.remove('active');
+            
+            // Show selected tab and set active button
+            document.getElementById(tabName + '-form').classList.remove('hidden');
+            document.getElementById(tabName + '-tab').classList.add('active');
+        }
+    </script>
+</body>
+</html>
